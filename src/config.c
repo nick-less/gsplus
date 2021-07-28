@@ -207,6 +207,7 @@ char g_cfg_opts_strvals[CFG_MAX_OPTS][CFG_OPT_MAXSTR];
 char g_cfg_opt_buf[CFG_OPT_MAXSTR];
 
 char *g_cfg_rom_path = "ROM";
+char *g_cfg_c6rom_path = "";
 const char *g_cfg_file_def_name = "Undefined";
 char **g_cfg_file_strptr = 0;
 int g_cfg_file_min_size = 1024;
@@ -311,6 +312,7 @@ Cfg_menu g_cfg_joystick_menu[] = {
 Cfg_menu g_cfg_rom_menu[] = {
   { "ROM File Selection", g_cfg_rom_menu, 0, 0, CFGTYPE_MENU },
   { "ROM File", KNMP(g_cfg_rom_path), CFGTYPE_FILE },
+  { "C600 ROM File", KNMP(g_cfg_c6rom_path), CFGTYPE_FILE },
   { "", 0, 0, 0, 0 },
   { "Back to Main Config", g_cfg_main_menu, 0, 0, CFGTYPE_MENU },
   { 0, 0, 0, 0, 0 },
@@ -529,10 +531,10 @@ const char *g_gsplus_rom_names[] = { "ROM", "ROM", "ROM1", "ROM3", "ROM01", "ROM
 const char *g_gsplus_c1rom_names[] = { "parallel.rom", 0 };
 const char *g_gsplus_c2rom_names[] = { 0 };
 const char *g_gsplus_c3rom_names[] = { 0 };
-const char *g_gsplus_c4rom_names[] = { 0 };
+const char *g_gsplus_c4rom_names[] = { "c400.rom" };
 const char *g_gsplus_c5rom_names[] = { 0 };
 const char *g_gsplus_c6rom_names[] = { "c600.rom", "controller.rom", "disk.rom", "DISK.ROM", "diskII.prom", 0 };
-const char *g_gsplus_c7rom_names[] = { 0 };
+const char *g_gsplus_c7rom_names[] = { "c700.rom" };
 
 const char **g_gsplus_rom_card_list[8] = {
   0,                      g_gsplus_c1rom_names,
@@ -956,13 +958,15 @@ void config_load_roms()      {
 		} else if(fbb3 == 0xea) {
 			type = "II+";
 		}
-		printf("This is an Apple %s rom\n",type);
+		glogf("This is an Apple %s rom\n",type);
 	}
   memset(&g_rom_cards_ptr[0], 0, 256*16);
 
   /* initialize c600 rom to be diffs from the real ROM, to build-in */
   /*  Apple II compatibility without distributing ROMs */
 	if(g_a2rom_version == 'g') {
+ 		glogf("patching c600 rom\n");
+
     for(i = 0; i < 256; i++) {
       g_rom_cards_ptr[0x600 + i] = g_rom_fc_ff_ptr[0x3c600 + i] ^
                                   g_rom_c600_rom01_diffs[i];
@@ -976,8 +980,9 @@ void config_load_roms()      {
     g_rom_cards_ptr[0x633] ^= 0x33;
   }
 /* Initialize c700 rom for smartport */
-        switch(g_a2rom_version) {
+   switch(g_a2rom_version) {
         case 'g': case '2': case 'e':
+ 		glogf("patching c700 rom\n");
 		memset(&g_rom_cards_ptr[0x700],0,256);
 		g_rom_cards_ptr[0x701] = 0x20;
 		g_rom_cards_ptr[0x703] = 0x00;

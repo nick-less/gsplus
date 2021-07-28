@@ -687,14 +687,18 @@ void fixup_intcx()      {
       mask = 1 << (j & 0xf);
       if(j < 0xc8) {
         rom_inc = SET_BANK_IO;
+        // from my understanding (or at least for my purpose of developing a driver rom...)
+        // the user slot roms should override any internal rom
+        // so check if the slot rom is non zero and if so enable it
+        if (g_rom_cards_ptr[(j & 0xf) <<8]) {
+//           printf(" user rom in %02x00\n", j);
+          rom_inc = &(g_rom_cards_ptr[0]) + ((j - 0xc0) << 8);
+        } else {
         if(((g_c02d_int_crom & mask) == 0) || INTCX) {
           rom_inc = rom10000 + (j << 8);	
           if((g_c068_statereg & 0x02) && A2CROM)
-						rom_inc -= 0x10000;
-        } else {
-          // User-slot rom
-          rom_inc = &(g_rom_cards_ptr[0]) +
-                    ((j - 0xc0) << 8);
+            rom_inc -= 0x10000;
+        }
         }
         SET_PAGE_INFO_RD(j + off, rom_inc);
       }
