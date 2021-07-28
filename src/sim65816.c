@@ -88,6 +88,8 @@ extern int g_c068_statereg;
 extern int g_cur_a2_stat;
 
 extern int g_c08x_wrdefram;
+extern int g_c08x_q3defram;
+
 extern int g_c02d_int_crom;
 
 extern int g_c035_shadow_reg;
@@ -141,6 +143,8 @@ double g_fcycles_stop = 0.0;
 int halt_sim = 0;
 int enter_debug = 0;
 int g_rom_version = -1;
+int	g_a2rom_version = 0;
+
 
 int g_user_halt_bad = 0;
 int g_halt_on_bad_read = 0;
