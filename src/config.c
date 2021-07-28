@@ -221,6 +221,15 @@ void display_rawnet_menu(const char *name, const char **value);
 
 extern Cfg_menu g_cfg_main_menu[];
 
+// FIXME: XXX just a hack to test my compact flash card firmware 
+// when found load the firmware binary and map it into ram at 0x040000 (the apple iic extension board has rom there)
+// in sim65816 the binary will be copied over to ram
+char *usr_rom_name="firmware.bin";
+char *usr_rom = NULL;
+int usr_rom_addr = 0x041000;
+int usr_rom_size;
+
+
 #define KNMP(a)         &a, #a, 0
 
 // This first menu is not a menu, but a list of config options that are
@@ -910,14 +919,12 @@ void config_load_roms()      {
 		g_mem_size_base = 256*1024;
 		memset(&g_rom_fc_ff_ptr[0], 0, 0x3d000);
     ret = fread(&g_rom_fc_ff_ptr[0x3d000], 1, len, file);
-//		ret = read(fd, &g_rom_fc_ff_ptr[0x3d000], len);
 	} else if(len == 16*1024) { /* IIe IIc  */
 		g_rom_version = 3;
 		g_a2rom_version = '2';
 		g_mem_size_base = 256*1024;
 		memset(&g_rom_fc_ff_ptr[0], 0, 0x3c000);
     ret = fread(&g_rom_fc_ff_ptr[0x3d000], 1, len, file);
-//		ret = read(fd, &g_rom_fc_ff_ptr[0x3c000], len);
 	} else if(len == 32*1024) { /* IIe IIc IIc+ */
 		int r1, r2;
 		g_rom_version = 3;
@@ -925,9 +932,7 @@ void config_load_roms()      {
 		g_mem_size_base = 256*1024;
 		memset(&g_rom_fc_ff_ptr[0], 0, 0x3c000);
     r1 = fread(&g_rom_fc_ff_ptr[0x3c000], 1, 0x4000, file);
-//		r1 = read(fd, &g_rom_fc_ff_ptr[0x3c000], 0x4000);
     r2 = fread(&g_rom_fc_ff_ptr[0x2c000], 1, 0x4000, file);
-//		r2 = read(fd, &g_rom_fc_ff_ptr[0x2c000], 0x4000);
 		ret = (r2 < 0) ? r1 : r1+r2;
 	  } else {
     fatal_printf("The ROM size should be 128K or 256K, this file "
@@ -961,6 +966,21 @@ void config_load_roms()      {
 		glogf("This is an Apple %s rom\n",type);
 	}
   memset(&g_rom_cards_ptr[0], 0, 256*16);
+
+
+
+ // FIXME: XXX HACK
+  file = fopen(usr_rom_name, "rb");
+  if (file) {
+    ret = stat(usr_rom_name, &stat_buf);
+    if (ret == 0) {
+      usr_rom_size = stat_buf.st_size;
+      usr_rom = malloc(len + 1);
+      ret = fread(usr_rom, 1, usr_rom_size, file);
+      glogf("Read %d bytes (%dK) of AUX ROM", ret, ret/1024);
+    }
+   fclose(file);
+  }
 
   /* initialize c600 rom to be diffs from the real ROM, to build-in */
   /*  Apple II compatibility without distributing ROMs */

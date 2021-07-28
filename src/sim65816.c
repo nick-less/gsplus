@@ -26,6 +26,8 @@ extern char g_config_gsplus_screenshot_dir[];
   #include "rawnet/cs8900.h"
 #endif
 
+#include "mockingboard.h"
+
 #if defined(_WIN32) && !defined(HAVE_SDL)
   #define WIN32_LEAN_AND_MEAN   /* Tell windows we want less header gunk */
   #define STRICT                        /* Tell Windows we want compile type checks */
@@ -742,6 +744,11 @@ byte * memalloc_align(int size, int skip_amt, void **alloc_ptr) {
   return (bptr + offset);
 }
 
+// FIXME: XXX HACK
+extern char *usr_rom ;
+extern int usr_rom_addr;
+extern int usr_rom_size;
+
 void memory_ptr_init() {
   word32 mem_size;
 
@@ -760,7 +767,15 @@ void memory_ptr_init() {
    */
   g_memory_ptr = memalloc_align(mem_size, 256, &g_memory_alloc_ptr);
 
+
   glogf("RAM size is %d bytes (%.2fMB)", mem_size, (double)mem_size/(1024.0*1024.0));
+
+  if (usr_rom!=NULL) {
+    memcpy(g_memory_ptr+ usr_rom_addr, usr_rom, usr_rom_size);
+    glogf("copy %d bytes of USR Rom to %x", usr_rom_size, usr_rom_addr);
+  }
+
+
 }
 
 // OG Added memory_ptr_shut
@@ -1575,6 +1590,9 @@ int run_prog()      {
           break;
         case EV_VID_UPD:
           video_update_event_line(type >> 8);
+          break;
+       case EV_MOCKINGBOARD:
+          mockingboard_event(dcycs);
           break;
         default:
           printf("Unknown event: %d!\n", type);

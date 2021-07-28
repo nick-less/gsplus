@@ -12,6 +12,8 @@
 #include "rawnet/cs8900.h"
 #endif
 
+#include "mockingboard.h"
+
 extern char const g_gsplus_version_str[];
 
 extern byte *g_memory_ptr;
@@ -2083,14 +2085,16 @@ int io_read(word32 loc, double *cyc_ptr)     {
           printf("loc: %04x bad\n", loc);
           UNIMPL_READ;
       }
-    case 1: case 2: case 3: case 4: case 5: case 6:
-      /* c100 - c6ff */
+    case 1: case 2: case 3: case 5: case 6:
+      /* c100 - c6ff (except c4xx) */
       mask = (1 << ((loc >> 8) & 7));
       if(INTCX || ((g_c02d_int_crom & mask) == 0)) {
         return(g_rom_fc_ff_ptr[0x3c000 + (loc & 0xfff)]);
       }
       return float_bus(dcycs);
-    case 7:
+	  case 4:
+		return mockingboard_read(loc, dcycs);
+        case 7:
       /* c700 */
 
       if(INTCX || ((g_c02d_int_crom & (1 << 7)) == 0)) {
@@ -2898,9 +2902,15 @@ paddle_trigger(dcycs);
           exit(-300);
       }
       break;
-    case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-      /* c1000 - c7ff */
+    case 1: case 2: case 3: case 5: case 6: case 7:
+		/* c1000 - c7ff (but not c4xx) */
       UNIMPL_WRITE;
+  	case 4:
+		if((g_c02d_int_crom & 0x10) && !(g_c068_statereg & 1)) {
+			// Slot 4 is set to Your Card and not INTCX
+			mockingboard_write(loc, val, dcycs);
+    }
+
      case 9: case 0xa: case 0xb:  case 0xd:
       UNIMPL_WRITE;
       case 0x8: case 0xc: case 0xe:
