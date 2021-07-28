@@ -173,7 +173,7 @@ set(MACOSX_BUNDLE_GUI_IDENTIFIER com.dagenbrock.gsplus)
 # https://cmake.org/Wiki/CMake:Bundles_And_Frameworks
 # OS X properties.
 add_executable(GSplus WIN32 MACOSX_BUNDLE
-	adb.c clock.c config.c engine_c.c scc.c iwm.c mockingboard.c
+	adb.c clock.c config.c engine_c.c scc.c iwm.c mockingboard.c ide.c
 	joystick_driver.c moremem.c paddles.c parallel.c printer.cpp sim65816.c
 	smartport.c sound.c sound_driver.c video.c scc_socket_driver.c glog.c
 	imagewriter.cpp scc_imagewriter.c scc_llap.c options.c
