@@ -13,6 +13,8 @@
 #endif
 
 #include "mockingboard.h"
+#include "ide.h"
+
 
 extern char const g_gsplus_version_str[];
 
@@ -2062,7 +2064,7 @@ int io_read(word32 loc, double *cyc_ptr)     {
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
         case 0xdc: case 0xdd: case 0xde: case 0xdf:
-          return 0;
+          return read_ide(loc, dcycs);
         /* 0xc0e0 - 0xc0ef */
         case 0xe8: case 0xe9:
 			if (g_a2rom_version == 'C')
@@ -2876,7 +2878,8 @@ paddle_trigger(dcycs);
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
         case 0xdc: case 0xdd: case 0xde: case 0xdf:
-          UNIMPL_WRITE;
+          ide_write( loc, val, dcycs);
+          return;
 
         /* 0xc0e0 - 0xc0ef */
         case 0xe8: case 0xe9: 

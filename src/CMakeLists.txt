@@ -1,3 +1,5 @@
+project(GSplus)
+cmake_minimum_required(VERSION 3.10)
 
 INCLUDE (CheckFunctionExists)
 INCLUDE (CheckLibraryExists)

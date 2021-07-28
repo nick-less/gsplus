@@ -17,6 +17,22 @@
  *	along with IDE-emu.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ // use c0d0 for ide (should be free)
+ // use c0c0 for audio 
+ // reminder
+ /*
+ $C000..C07F On Board Resources
+$C080..C08F Slot 0 /DEVSEL area (16 byte register file)
+$C090..C09F Slot 1 /DEVSEL area
+a = 2, b = 3, c = 4, d = 5, e=6, f=5
+... repeated for Slot 2..6
+$C0F0..C0FF Slot 7 /DEVSEL
+$C100..C1FF Slot 1 /IOSEL area (256 bytes 'PROM')
+... repeated for Slot 2..6
+$C700..C7FF Slot 7 /IOSEL area
+$C800..CFFF Common area for all Slots (2 KiB 'ROM')
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -25,7 +41,8 @@
 #include <errno.h>
 #include <time.h>
 #include <arpa/inet.h>
-
+#include <fcntl.h>
+#include "glog.h"
 #include "ide.h"
 
 #define IDE_IDLE	0
@@ -76,6 +93,33 @@
 const uint8_t ide_magic[8] = {
   '1','D','E','D','1','5','C','0'
 };
+
+static struct ide_controller *controller = NULL;
+static int diskfile;
+
+void init (void) {
+  if (controller == NULL) {
+    controller = ide_allocate("ide0");
+    diskfile = open("../hardisk.image.dmg", O_RDWR , 0x1b6);
+    ide_attach(controller, 0, diskfile);
+     glogf("init disk file\n");
+
+
+  }
+}
+
+uint8_t read_ide(uint32_t loc, double dcycs) {
+  if (controller == NULL) {
+   init();
+ }
+  return ide_read8(controller, loc);
+}
+void ide_write(uint32_t loc, uint32_t val, double dcycs) {
+  if (controller == NULL) {
+   init();
+ }
+  ide_write8(controller, loc, val);
+}
 
 static char *charmap(uint8_t v)
 {
@@ -128,7 +172,7 @@ static void ide_xlate_errno(struct ide_taskfile *t, int len)
 
 static void ide_fault(struct ide_drive *d, const char *p)
 {
-  fprintf(stderr, "ide: %s: %d: %s\n", d->controller->name,
+  glogf( "ide: %s: %d: %s\n", d->controller->name,
 			(int)(d - d->controller->drive), p);
 }
 
