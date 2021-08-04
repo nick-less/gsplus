@@ -2064,7 +2064,7 @@ int io_read(word32 loc, double *cyc_ptr)     {
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
         case 0xdc: case 0xdd: case 0xde: case 0xdf:
-          return read_ide(loc, dcycs);
+          return ide_read(loc-0xd0, dcycs);
         /* 0xc0e0 - 0xc0ef */
         case 0xe8: case 0xe9:
 			if (g_a2rom_version == 'C')
@@ -2878,7 +2878,7 @@ paddle_trigger(dcycs);
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
         case 0xdc: case 0xdd: case 0xde: case 0xdf:
-          ide_write( loc, val, dcycs);
+          ide_write( loc-0xd0, val, dcycs);
           return;
 
         /* 0xc0e0 - 0xc0ef */

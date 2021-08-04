@@ -977,7 +977,7 @@ void config_load_roms()      {
       usr_rom_size = stat_buf.st_size;
       usr_rom = malloc(len + 1);
       ret = fread(usr_rom, 1, usr_rom_size, file);
-      glogf("Read %d bytes (%dK) of AUX ROM", ret, ret/1024);
+      glogf("Read %d bytes (%dK) of USR ROM", ret, ret/1024);
     }
    fclose(file);
   }

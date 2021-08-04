@@ -70,7 +70,7 @@ extern const uint8_t ide_magic[8];
 extern "C" {
 #endif
 
-uint8_t read_ide(uint32_t loc, double dcycs);
+uint8_t ide_read(uint32_t loc, double dcycs);
 void ide_write(uint32_t loc, uint32_t val, double dcycs);
 
 

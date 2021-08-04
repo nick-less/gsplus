@@ -100,15 +100,16 @@ static int diskfile;
 void init (void) {
   if (controller == NULL) {
     controller = ide_allocate("ide0");
-    diskfile = open("../hardisk.image.dmg", O_RDWR , 0x1b6);
+    diskfile = open("disk.img", O_RDWR , 0x1b6);
     ide_attach(controller, 0, diskfile);
      glogf("init disk file\n");
-
+    ide_reset_begin (controller);
+     glogf("reset disk\n");
 
   }
 }
 
-uint8_t read_ide(uint32_t loc, double dcycs) {
+uint8_t ide_read(uint32_t loc, double dcycs) {
   if (controller == NULL) {
    init();
  }
@@ -181,8 +182,8 @@ static off_t xlate_block(struct ide_taskfile *t)
 {
   struct ide_drive *d = t->drive;
   if (t->lba4 & DEVH_LBA) {
-/*    fprintf(stderr, "XLATE LBA %02X:%02X:%02X:%02X\n", 
-      t->lba4, t->lba3, t->lba2, t->lba1);*/
+    glogf( "XLATE LBA %02X:%02X:%02X:%02X\n", 
+      t->lba4, t->lba3, t->lba2, t->lba1);
     if (d->lba)
       return 2 + (((t->lba4 & DEVH_HEAD) << 24) | (t->lba3 << 16) | (t->lba2 << 8) | t->lba1);
     ide_fault(d, "LBA on non LBA drive");
@@ -469,7 +470,7 @@ static int ide_read_sector(struct ide_drive *d)
     ide_xlate_errno(&d->taskfile, len);
     return -1;
   }
-//  hexdump(d->data);
+  hexdump(d->data);
   d->offset += 512;
   return 0;
 }
@@ -607,6 +608,8 @@ uint8_t ide_read8(struct ide_controller *c, uint8_t r)
 {
   struct ide_drive *d = &c->drive[c->selected];
   struct ide_taskfile *t = &d->taskfile;
+
+
   switch(r) {
     case ide_data:
       return ide_data_in(d, 1);
@@ -623,6 +626,7 @@ uint8_t ide_read8(struct ide_controller *c, uint8_t r)
     case ide_lba_top:
       return t->lba4;
     case ide_status_r:
+      glogf("status %x",t->status);
       d->intrq = 0;		/* Acked */
     case ide_altst_r:
       return t->status;
@@ -636,6 +640,9 @@ void ide_write8(struct ide_controller *c, uint8_t r, uint8_t v)
 {
   struct ide_drive *d = &c->drive[c->selected];
   struct ide_taskfile *t = &d->taskfile;
+
+         glogf("write register %d %02x\n", r, v);
+
 
   if (r != ide_devctrl_w) {
     if (t->status & ST_BSY) {
